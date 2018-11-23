@@ -1,6 +1,6 @@
 {
   "name": "firestore-model",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Firestore / Firebase object model schema wrapper",
   "keywords": [
     "Firestore",
@@ -23,11 +23,12 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc -p ./tsconfig.json && tscpaths -p ./tsconfig.json -s ./src -o ./lib",
-    "clear": "rm -rf ./lib ./coverage",
+    "build:es6": "tsc -p ./tsconfig.es6.json && tscpaths -p ./tsconfig.es6.json -s ./src -o ./es6",
+    "clear": "rm -rf ./lib ./es6 ./coverage",
     "format": "prettier --write \"./*.{js,jsx,ts,tsx}\" \"./src/**/*.{js,jsx,ts,tsx}\"",
     "lint": "tslint -c ./tslint.json \"src/**/*\"",
     "lint:fix": "tslint --fix -c ./tslint.json \"src/**/*\"",
-    "start": "yarn clear && yarn format && yarn lint:fix && yarn test && yarn build",
+    "start": "yarn clear && yarn format && yarn lint:fix && yarn test && yarn build && yarn build:es6",
     "prepublish": "yarn start",
     "test": "jest",
     "test:coverage": "jest --coverage",
