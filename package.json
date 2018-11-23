@@ -1,6 +1,6 @@
 {
   "name": "firestore-model",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Firestore / Firebase object model schema wrapper",
   "keywords": [
     "Firestore",
