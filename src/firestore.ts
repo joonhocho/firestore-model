@@ -1,10 +1,10 @@
-import { FieldValue, Timestamp, WhereFilterOp } from '@google-cloud/firestore';
+import { FieldValue, WhereFilterOp } from '@google-cloud/firestore';
 import { getKeys } from './util';
 
 export type BatchOp = (x: FirebaseFirestore.WriteBatch) => void;
 
-export const firestoreServerNow = (): Timestamp =>
-  FieldValue.serverTimestamp() as any;
+export const firestoreServerNow = (): FieldValue =>
+  FieldValue.serverTimestamp();
 
 export const batchFirestoreOps = async (
   fs: FirebaseFirestore.Firestore,
@@ -53,8 +53,11 @@ export type IFirestoreWhereConditions<TData> = Partial<
 export class FirestoreCollection<TData extends {}> {
   public colRef: FirebaseFirestore.CollectionReference;
 
-  constructor(public fs: FirebaseFirestore.Firestore, collectionPath: string) {
-    this.colRef = fs.collection(collectionPath);
+  constructor(
+    public fs: FirebaseFirestore.Firestore,
+    public collectionName: string
+  ) {
+    this.colRef = fs.collection(collectionName);
   }
 
   public getDataFromSnapshot = (

@@ -5,8 +5,11 @@ type WithId<TData> = TData & { id: string };
 export class FirebaseCollection<TData extends {}> {
   public colRef: admin.database.Reference;
 
-  constructor(public db: admin.database.Database, collectionPath: string) {
-    this.colRef = db.ref(collectionPath);
+  constructor(
+    public db: admin.database.Database,
+    public collectionName: string
+  ) {
+    this.colRef = db.ref(collectionName);
   }
 
   public getDataFromSnapshot = (
