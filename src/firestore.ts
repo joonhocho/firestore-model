@@ -50,7 +50,7 @@ export type IFirestoreWhereConditions<TData> = Partial<
   }
 >;
 
-export class FirestoreCollection<TData extends {}> {
+export class FirestoreCollection<TData extends {}, TCreate = TData> {
   public colRef: FirebaseFirestore.CollectionReference;
 
   constructor(
@@ -97,7 +97,7 @@ export class FirestoreCollection<TData extends {}> {
     this.getByIds(ids).then(this.getDataFromSnapshots);
 
   public create = async (
-    data: TData
+    data: TCreate
   ): Promise<{ id: string; writeResult: FirebaseFirestore.WriteResult }> => {
     const ref = this.colRef.doc();
     const writeResult = await ref.create(data);
@@ -109,12 +109,12 @@ export class FirestoreCollection<TData extends {}> {
 
   public createById = (
     id: string,
-    data: TData
+    data: TCreate
   ): Promise<FirebaseFirestore.WriteResult> => this.colRef.doc(id).create(data);
 
   public setById = (
     id: string,
-    data: TData,
+    data: TCreate,
     options?: FirebaseFirestore.SetOptions
   ): Promise<FirebaseFirestore.WriteResult> =>
     options
@@ -123,14 +123,14 @@ export class FirestoreCollection<TData extends {}> {
 
   public upsertById = (
     id: string,
-    data: TData,
+    data: TCreate,
     options?: FirebaseFirestore.SetOptions
   ): Promise<FirebaseFirestore.WriteResult> =>
     this.setById(id, data, { ...options, merge: true });
 
   public updateById = (
     id: string,
-    data: Partial<TData>,
+    data: Partial<TCreate>,
     precondition?: FirebaseFirestore.Precondition
   ): Promise<FirebaseFirestore.WriteResult> =>
     precondition

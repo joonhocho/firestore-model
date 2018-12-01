@@ -2,7 +2,7 @@ import * as admin from 'firebase-admin';
 
 type WithId<TData> = TData & { id: string };
 
-export class FirebaseCollection<TData extends {}> {
+export class FirebaseCollection<TData extends {}, TCreate = TData> {
   public colRef: admin.database.Reference;
 
   constructor(
@@ -54,16 +54,16 @@ export class FirebaseCollection<TData extends {}> {
   public getDataByIds = (ids: string[]): Promise<Array<WithId<TData> | null>> =>
     this.getByIds(ids).then(this.getDataFromSnapshots);
 
-  public create = async (data: TData): Promise<{ id: string }> => {
+  public create = async (data: TCreate): Promise<{ id: string }> => {
     const ref = this.colRef.push();
     await ref.set(data);
     return { id: ref.key! };
   };
 
-  public setById = (id: string, data: TData): Promise<void> =>
+  public setById = (id: string, data: TCreate): Promise<void> =>
     this.colRef.child(id).set(data);
 
-  public upsertById = (id: string, data: TData): Promise<void> =>
+  public upsertById = (id: string, data: TCreate): Promise<void> =>
     this.colRef.child(id).update(data);
 
   public deleteById = (id: string): Promise<void> =>
