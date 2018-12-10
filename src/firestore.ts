@@ -1,4 +1,8 @@
-import { FieldValue, WhereFilterOp } from '@google-cloud/firestore';
+import {
+  FieldValue,
+  Transaction,
+  WhereFilterOp,
+} from '@google-cloud/firestore';
 import { getKeys } from './util';
 
 export type BatchOp = (x: FirebaseFirestore.WriteBatch) => void;
@@ -87,8 +91,20 @@ export class FirestoreCollection<
   public getById = (id: string): Promise<FirebaseFirestore.DocumentSnapshot> =>
     this.colRef.doc(id).get();
 
+  public getByIdTransaction = (
+    transaction: Transaction,
+    id: string
+  ): Promise<FirebaseFirestore.DocumentSnapshot> =>
+    transaction.get(this.colRef.doc(id));
+
   public getDataById = (id: string): Promise<WithId<TRead> | null> =>
     this.getById(id).then(this.getDataFromSnapshot);
+
+  public getDataByIdTransaction = (
+    transaction: Transaction,
+    id: string
+  ): Promise<WithId<TRead> | null> =>
+    this.getByIdTransaction(transaction, id).then(this.getDataFromSnapshot);
 
   public getByIds = (
     ids: string[]
@@ -97,8 +113,22 @@ export class FirestoreCollection<
       ? (this.fs.getAll as any)(...ids.map(this.doc))
       : Promise.resolve([]);
 
+  public getByIdsTransaction = (
+    transaction: Transaction,
+    ids: string[]
+  ): Promise<FirebaseFirestore.DocumentSnapshot[]> =>
+    ids.length
+      ? (transaction.getAll as any)(...ids.map(this.doc))
+      : Promise.resolve([]);
+
   public getDataByIds = (ids: string[]): Promise<Array<WithId<TRead> | null>> =>
     this.getByIds(ids).then(this.getDataFromSnapshots);
+
+  public getDataByIdsTransaction = (
+    transaction: Transaction,
+    ids: string[]
+  ): Promise<Array<WithId<TRead> | null>> =>
+    this.getByIdsTransaction(transaction, ids).then(this.getDataFromSnapshots);
 
   public create = async (
     data: TCreate
@@ -116,6 +146,12 @@ export class FirestoreCollection<
     data: TCreate
   ): Promise<FirebaseFirestore.WriteResult> => this.colRef.doc(id).create(data);
 
+  public createByIdTransaction = (
+    transaction: Transaction,
+    id: string,
+    data: TCreate
+  ): Transaction => transaction.create(this.colRef.doc(id), data);
+
   public setById = (
     id: string,
     data: TCreate,
@@ -125,12 +161,30 @@ export class FirestoreCollection<
       ? this.colRef.doc(id).set(data, options)
       : this.colRef.doc(id).set(data);
 
+  public setByIdTransaction = (
+    transaction: Transaction,
+    id: string,
+    data: TCreate,
+    options?: FirebaseFirestore.SetOptions
+  ): Transaction =>
+    options
+      ? transaction.set(this.colRef.doc(id), data, options)
+      : transaction.set(this.colRef.doc(id), data);
+
   public upsertById = (
     id: string,
     data: TCreate,
     options?: FirebaseFirestore.SetOptions
   ): Promise<FirebaseFirestore.WriteResult> =>
     this.setById(id, data, { ...options, merge: true });
+
+  public upsertByIdTransaction = (
+    transaction: Transaction,
+    id: string,
+    data: TCreate,
+    options?: FirebaseFirestore.SetOptions
+  ): Transaction =>
+    this.setByIdTransaction(transaction, id, data, { ...options, merge: true });
 
   public updateById = (
     id: string,
@@ -141,6 +195,16 @@ export class FirestoreCollection<
       ? this.colRef.doc(id).update(data, precondition)
       : this.colRef.doc(id).update(data);
 
+  public updateByIdTransaction = (
+    transaction: Transaction,
+    id: string,
+    data: TUpdate,
+    precondition?: FirebaseFirestore.Precondition
+  ): Transaction =>
+    precondition
+      ? transaction.update(this.colRef.doc(id), data, precondition)
+      : transaction.update(this.colRef.doc(id), data);
+
   public deleteById = (
     id: string,
     precondition?: FirebaseFirestore.Precondition
@@ -148,6 +212,15 @@ export class FirestoreCollection<
     precondition
       ? this.colRef.doc(id).delete(precondition)
       : this.colRef.doc(id).delete();
+
+  public deleteByIdTransaction = (
+    transaction: Transaction,
+    id: string,
+    precondition?: FirebaseFirestore.Precondition
+  ): Transaction =>
+    precondition
+      ? transaction.delete(this.colRef.doc(id), precondition)
+      : transaction.delete(this.colRef.doc(id));
 
   public queryByUniqueField = <Key extends keyof TRead & string>(
     field: Key,
