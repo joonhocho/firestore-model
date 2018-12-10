@@ -50,7 +50,11 @@ export type IFirestoreWhereConditions<TData> = Partial<
   }
 >;
 
-export class FirestoreCollection<TData extends {}, TCreate = TData> {
+export class FirestoreCollection<
+  TCreate extends {},
+  TRead = TCreate,
+  TUpdate = TCreate
+> {
   public colRef: FirebaseFirestore.CollectionReference;
 
   constructor(
@@ -65,7 +69,7 @@ export class FirestoreCollection<TData extends {}, TCreate = TData> {
       | FirebaseFirestore.DocumentSnapshot
       | FirebaseFirestore.QueryDocumentSnapshot
       | null
-  ): WithId<TData> | null => snapshot && getDataFromSnapshot(snapshot);
+  ): WithId<TRead> | null => snapshot && getDataFromSnapshot(snapshot);
 
   public getDataFromSnapshots = (
     snapshots: Array<
@@ -73,7 +77,7 @@ export class FirestoreCollection<TData extends {}, TCreate = TData> {
       | FirebaseFirestore.QueryDocumentSnapshot
       | null
     >
-  ): Array<WithId<TData> | null> => snapshots.map(this.getDataFromSnapshot);
+  ): Array<WithId<TRead> | null> => snapshots.map(this.getDataFromSnapshot);
 
   public doc = (id: string): FirebaseFirestore.DocumentReference =>
     this.colRef.doc(id);
@@ -83,7 +87,7 @@ export class FirestoreCollection<TData extends {}, TCreate = TData> {
   public getById = (id: string): Promise<FirebaseFirestore.DocumentSnapshot> =>
     this.colRef.doc(id).get();
 
-  public getDataById = (id: string): Promise<WithId<TData> | null> =>
+  public getDataById = (id: string): Promise<WithId<TRead> | null> =>
     this.getById(id).then(this.getDataFromSnapshot);
 
   public getByIds = (
@@ -93,7 +97,7 @@ export class FirestoreCollection<TData extends {}, TCreate = TData> {
       ? (this.fs.getAll as any)(...ids.map(this.doc))
       : Promise.resolve([]);
 
-  public getDataByIds = (ids: string[]): Promise<Array<WithId<TData> | null>> =>
+  public getDataByIds = (ids: string[]): Promise<Array<WithId<TRead> | null>> =>
     this.getByIds(ids).then(this.getDataFromSnapshots);
 
   public create = async (
@@ -130,7 +134,7 @@ export class FirestoreCollection<TData extends {}, TCreate = TData> {
 
   public updateById = (
     id: string,
-    data: Partial<TCreate>,
+    data: TUpdate,
     precondition?: FirebaseFirestore.Precondition
   ): Promise<FirebaseFirestore.WriteResult> =>
     precondition
@@ -145,13 +149,13 @@ export class FirestoreCollection<TData extends {}, TCreate = TData> {
       ? this.colRef.doc(id).delete(precondition)
       : this.colRef.doc(id).delete();
 
-  public queryByUniqueField = <Key extends keyof TData & string>(
+  public queryByUniqueField = <Key extends keyof TRead & string>(
     field: Key,
-    value: TData[Key]
+    value: TRead[Key]
   ): FirebaseFirestore.Query => this.colRef.where(field, '==', value).limit(1);
 
   public where = (
-    conditions: IFirestoreWhereConditions<TData>
+    conditions: IFirestoreWhereConditions<TRead>
   ): FirebaseFirestore.Query => {
     let query: FirebaseFirestore.Query = this.colRef;
     const fields = getKeys(conditions);
@@ -175,7 +179,7 @@ export class FirestoreCollection<TData extends {}, TCreate = TData> {
   };
 
   public findOne = (
-    conditions: IFirestoreWhereConditions<TData>
+    conditions: IFirestoreWhereConditions<TRead>
   ): Promise<FirebaseFirestore.QueryDocumentSnapshot | null> => {
     return this.where(conditions)
       .limit(1)
@@ -184,7 +188,7 @@ export class FirestoreCollection<TData extends {}, TCreate = TData> {
   };
 
   public exists = (
-    conditions: IFirestoreWhereConditions<TData>
+    conditions: IFirestoreWhereConditions<TRead>
   ): Promise<boolean> => {
     return this.where(conditions)
       .limit(1)
@@ -192,24 +196,24 @@ export class FirestoreCollection<TData extends {}, TCreate = TData> {
       .then((s) => s.size > 0);
   };
 
-  public getByUniqueField = <Key extends keyof TData & string>(
+  public getByUniqueField = <Key extends keyof TRead & string>(
     field: Key,
-    value: TData[Key]
+    value: TRead[Key]
   ): Promise<FirebaseFirestore.QueryDocumentSnapshot | null> =>
     this.queryByUniqueField(field, value)
       .get()
       .then(getFirstQueryDocumentSnapshot);
 
-  public getDataByUniqueField = <Key extends keyof TData & string>(
+  public getDataByUniqueField = <Key extends keyof TRead & string>(
     field: Key,
-    value: TData[Key]
-  ): Promise<WithId<TData> | null> =>
+    value: TRead[Key]
+  ): Promise<WithId<TRead> | null> =>
     this.getByUniqueField(field, value).then(this.getDataFromSnapshot);
 
-  public incrementById = <Key extends keyof TData & string>(
+  public incrementById = <Key extends keyof TRead & string>(
     id: string,
     field: Key,
-    amount: TData[Key] & number
+    amount: TRead[Key] & number
   ): Promise<boolean> => {
     const ref = this.doc(id);
     let exists = false;
@@ -218,7 +222,7 @@ export class FirestoreCollection<TData extends {}, TCreate = TData> {
         return t.get(ref).then((doc) => {
           if (doc.exists) {
             exists = true;
-            const data = doc.data() as TData;
+            const data = doc.data() as TRead;
             const prevValue = ((data[field] as any) as number) || 0;
             t.update(ref, { [field]: prevValue + amount });
           }
