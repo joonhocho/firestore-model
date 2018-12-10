@@ -141,6 +141,15 @@ export class FirestoreCollection<
     };
   };
 
+  public createTransaction = (
+    transaction: Transaction,
+    data: TCreate
+  ): FirebaseFirestore.DocumentReference => {
+    const ref = this.colRef.doc();
+    transaction.create(ref, data);
+    return ref;
+  };
+
   public createById = (
     id: string,
     data: TCreate
