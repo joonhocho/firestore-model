@@ -1,6 +1,6 @@
 {
   "name": "firestore-model",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Firestore / Firebase object model schema wrapper",
   "keywords": [
     "Firestore",
@@ -20,7 +20,7 @@
   "author": "Joon Ho Cho",
   "license": "MIT",
   "main": "es6/index.js",
-  "module": "lib/index.js",
+  "module": "es6/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc -p ./tsconfig.json && tscpaths -p ./tsconfig.json -s ./src -o ./lib",
