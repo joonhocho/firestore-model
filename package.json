@@ -1,6 +1,6 @@
 {
   "name": "firestore-model",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Firestore / Firebase object model schema wrapper",
   "keywords": [
     "Firestore",
@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@types/jest": "^23.3.1",
-    "@types/node": "^10.11.4",
+    "@types/node": "^10.12.15",
     "jest": "^23.5.0",
     "prettier": "^1.14.2",
     "ts-jest": "^23.1.4",
@@ -45,10 +45,10 @@
     "tslint": "^5.11.0",
     "tslint-config-airbnb": "^5.10.0",
     "tslint-config-prettier": "^1.15.0",
-    "typescript": "^3.0.1"
+    "typescript": "^3.2.2"
   },
   "dependencies": {
-    "firebase-admin": "*"
+    "firebase-admin": "6.4.0"
   },
   "engines": {
     "node": ">=8.2.1"
