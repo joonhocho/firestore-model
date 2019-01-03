@@ -46,11 +46,14 @@ export const getDataFromSnapshot = <TData>(
   return null;
 };
 
+type ItemType<T> = T extends Array<infer I> ? I : never;
+
 export type IFirestoreWhereConditions<TData> = Partial<
   {
     [key in keyof TData & string]: Partial<
-      { [op in WhereFilterOp & string]: TData[key] }
-    >
+      { [op in Exclude<WhereFilterOp, 'array-contains'> & string]: TData[key] }
+    > &
+      Partial<{ ['array-contains']: ItemType<TData[key]> }>
   }
 >;
 
