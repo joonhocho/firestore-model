@@ -9,6 +9,29 @@
     "model",
     "schema"
   ],
+  "main": "lib/index.js",
+  "module": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "all": "npm run clean && npm run format && npm run lint:fix && npm run test && npm run build && npm run build:es5",
+    "build": "tsc -p ./tsconfig.json && tscpaths -p ./tsconfig.json -s ./src -o ./lib",
+    "build:es5": "tsc -p ./tsconfig.es5.json && tscpaths -p ./tsconfig.es5.json -s ./src -o ./es5",
+    "clean": "rm -rf ./lib ./es5 ./coverage",
+    "format": "prettier --write \"./*.{js,jsx,ts,tsx}\" \"./src/**/*.{js,jsx,ts,tsx}\"",
+    "lint": "tslint -c ./tslint.json \"src/**/*\"",
+    "lint:fix": "tslint --fix -c ./tslint.json \"src/**/*\"",
+    "precommit": "npm run all",
+    "prepublish": "npm run all",
+    "reinstall": "rm -rf ./node_modules ./package-lock.json ./yarn.lock && npm i",
+    "start": "npm run test",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:coverage:report": "jest --coverage && cat ./coverage/lcov.info | coveralls",
+    "test:watch": "jest --watch"
+  },
+  "pre-commit": "precommit",
+  "author": "Joon Ho Cho",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/joonhocho/firestore-model.git"
@@ -17,31 +40,13 @@
     "url": "https://github.com/joonhocho/firestore-model/issues"
   },
   "homepage": "https://github.com/joonhocho/firestore-model#readme",
-  "author": "Joon Ho Cho",
-  "license": "MIT",
-  "main": "es6/index.js",
-  "module": "es6/index.js",
-  "types": "lib/index.d.ts",
-  "scripts": {
-    "build": "tsc -p ./tsconfig.json && tscpaths -p ./tsconfig.json -s ./src -o ./lib",
-    "build:es6": "tsc -p ./tsconfig.es6.json && tscpaths -p ./tsconfig.es6.json -s ./src -o ./es6",
-    "clean": "rm -rf ./lib ./es6 ./coverage",
-    "format": "prettier --write \"./*.{js,jsx,ts,tsx}\" \"./src/**/*.{js,jsx,ts,tsx}\"",
-    "lint": "tslint -c ./tslint.json \"src/**/*\"",
-    "lint:fix": "tslint --fix -c ./tslint.json \"src/**/*\"",
-    "prepublish": "yarn start",
-    "reinstall": "rm -rf ./node_modules ./yarn.lock && yarn",
-    "start": "yarn clean && yarn format && yarn lint:fix && yarn test && yarn build && yarn build:es6",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
-    "test:watch": "jest --watch",
-    "up:deps": "yarn upgrade-interactive --latest --ignore-engines"
-  },
   "devDependencies": {
     "@types/jest": "^24.0.13",
     "@types/node": "^12.0.2",
+    "coveralls": "^3.0.3",
     "firebase-admin": "7.3.0",
     "jest": "^24.8.0",
+    "pre-commit": "^1.2.2",
     "prettier": "^1.17.1",
     "ts-jest": "^24.0.2",
     "tscpaths": "^0.0.9",
@@ -56,5 +61,8 @@
   "engines": {
     "node": ">=8.2.1"
   },
-  "engineStrict": true
+  "engineStrict": true,
+  "dependencies": {
+    "tsdef": "0.0.8"
+  }
 }

@@ -3,6 +3,7 @@ import {
   Transaction,
   WhereFilterOp,
 } from '@google-cloud/firestore';
+import { MaybePromise } from 'tsdef';
 import { getKeys } from './util';
 
 export type BatchOp = (x: FirebaseFirestore.WriteBatch) => void;
@@ -53,7 +54,7 @@ export type IFirestoreWhereConditions<TData> = Partial<
     [key in keyof TData & string]: Partial<
       { [op in Exclude<WhereFilterOp, 'array-contains'> & string]: TData[key] }
     > &
-      Partial<{ ['array-contains']: ItemType<TData[key]> }>
+      Partial<{ ['array-contains']: ItemType<TData[key]> }>;
   }
 >;
 
@@ -66,7 +67,7 @@ export const getAllByIdsTransaction = async <
   {
     [key in keyof Map]: Map[key][0] extends FirestoreCollection<any, infer R>
       ? WithId<R> | null
-      : never
+      : never;
   }
 > => {
   const keys = Object.keys(map);
@@ -479,5 +480,35 @@ export class FirestoreCollection<
     if (batches.length) {
       await this.batchAll(batches);
     }
+  };
+
+  public forEachPage = async (
+    baseQuery: FirebaseFirestore.Query,
+    pageSize: number,
+    fn: (snapshot: FirebaseFirestore.QuerySnapshot) => MaybePromise<void>
+  ): Promise<number> => {
+    let startAfter: FirebaseFirestore.QueryDocumentSnapshot | null = null;
+    let count = 0;
+    while (true) {
+      let query = baseQuery.limit(pageSize);
+
+      if (startAfter) {
+        query = query.startAfter(startAfter);
+      }
+
+      const snapshot = await query.get();
+      const { size, docs } = snapshot;
+
+      if (size) {
+        count += size;
+        await fn(snapshot);
+      }
+      if (size < pageSize) {
+        break;
+      }
+
+      startAfter = docs[docs.length - 1];
+    }
+    return count;
   };
 }
