@@ -482,15 +482,32 @@ export class FirestoreCollection<
     }
   };
 
-  public forEachPage = async (
-    baseQuery: FirebaseFirestore.Query,
-    pageSize: number,
-    fn: (snapshot: FirebaseFirestore.QuerySnapshot) => MaybePromise<void>
-  ): Promise<number> => {
-    let startAfter: FirebaseFirestore.QueryDocumentSnapshot | null = null;
+  public forEachPage = async ({
+    query: baseQuery,
+    pageSize,
+    maxCount,
+    forEach,
+    startAfter: baseStartAfter = null,
+  }: {
+    query: FirebaseFirestore.Query;
+    pageSize: number;
+    maxCount?: number;
+    forEach: (
+      snapshot: FirebaseFirestore.QuerySnapshot,
+      index: number
+    ) => MaybePromise<void>;
+    startAfter?: FirebaseFirestore.QueryDocumentSnapshot | null;
+  }): Promise<number> => {
+    let startAfter: FirebaseFirestore.QueryDocumentSnapshot | null = baseStartAfter;
     let count = 0;
     while (true) {
-      let query = baseQuery.limit(pageSize);
+      const limit =
+        maxCount == null ? pageSize : Math.min(maxCount - count, pageSize);
+      if (limit <= 0) {
+        break;
+      }
+
+      let query = baseQuery.limit(limit);
 
       if (startAfter) {
         query = query.startAfter(startAfter);
@@ -500,10 +517,60 @@ export class FirestoreCollection<
       const { size, docs } = snapshot;
 
       if (size) {
+        await forEach(snapshot, count);
         count += size;
-        await fn(snapshot);
       }
-      if (size < pageSize) {
+      if (size < limit) {
+        break;
+      }
+
+      startAfter = docs[docs.length - 1];
+    }
+    return count;
+  };
+
+  public forEachPageTransaction = async (
+    transaction: Transaction,
+    {
+      query: baseQuery,
+      pageSize,
+      maxCount,
+      forEach,
+      startAfter: baseStartAfter = null,
+    }: {
+      query: FirebaseFirestore.Query;
+      pageSize: number;
+      maxCount?: number;
+      forEach: (
+        snapshot: FirebaseFirestore.QuerySnapshot,
+        index: number
+      ) => MaybePromise<void>;
+      startAfter?: FirebaseFirestore.QueryDocumentSnapshot | null;
+    }
+  ): Promise<number> => {
+    let startAfter: FirebaseFirestore.QueryDocumentSnapshot | null = baseStartAfter;
+    let count = 0;
+    while (true) {
+      const limit =
+        maxCount == null ? pageSize : Math.min(maxCount - count, pageSize);
+      if (limit <= 0) {
+        break;
+      }
+
+      let query = baseQuery.limit(limit);
+
+      if (startAfter) {
+        query = query.startAfter(startAfter);
+      }
+
+      const snapshot = await transaction.get(query);
+      const { size, docs } = snapshot;
+
+      if (size) {
+        await forEach(snapshot, count);
+        count += size;
+      }
+      if (size < limit) {
         break;
       }
 
