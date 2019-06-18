@@ -59,15 +59,17 @@ export type IFirestoreWhereConditions<TData> = Partial<
 >;
 
 export const getAllByIdsTransaction = async <
-  Map extends { [key: string]: [FirestoreCollection<any>, string] }
+  Map extends { [key: string]: [FirestoreCollection<any>, string | null] }
 >(
   transaction: Transaction,
   map: Map
 ): Promise<
   {
-    [key in keyof Map]: Map[key][0] extends FirestoreCollection<any, infer R>
-      ? WithId<R> | null
-      : never;
+    [key in keyof Map]: Map[key][1] extends null
+      ? null
+      : (Map[key][0] extends FirestoreCollection<any, infer R>
+          ? WithId<R> | null
+          : never);
   }
 > => {
   const keys = Object.keys(map);
@@ -75,20 +77,33 @@ export const getAllByIdsTransaction = async <
     return {} as any;
   }
 
-  const refs = keys.map((k) => {
+  const keysToFetch: string[] = [];
+  const keysWithNull: string[] = [];
+
+  for (let i = 0, klen = keys.length; i < klen; i += 1) {
+    const key = keys[i];
+    (map[key][1] == null ? keysWithNull : keysToFetch).push(key);
+  }
+
+  const refs = keysToFetch.map((k) => {
     const [col, id] = map[k];
-    return col.doc(id);
+    return col.doc(id!);
   }) as [FirebaseFirestore.DocumentReference]; // to let typescript know that there is at least one ref in array
 
   const snapshots = await transaction.getAll(...refs);
 
   const out: any = {};
 
-  snapshots.forEach((snapshot, i) => {
-    const key = keys[i];
+  for (let i = 0, len = keysWithNull.length; i < len; i += 1) {
+    out[keysWithNull[i]] = null;
+  }
+
+  for (let i = 0, len = snapshots.length; i < len; i += 1) {
+    const snapshot = snapshots[i];
+    const key = keysToFetch[i];
     const [col] = map[key];
     out[key] = col.getDataFromSnapshot(snapshot);
-  });
+  }
 
   return out;
 };
