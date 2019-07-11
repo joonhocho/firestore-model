@@ -1,6 +1,6 @@
 {
   "name": "firestore-model",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "description": "Firestore / Firebase object model schema wrapper",
   "keywords": [
     "Firestore",
@@ -66,5 +66,6 @@
   "engines": {
     "node": ">=8.0.0"
   },
-  "engineStrict": true
+  "engineStrict": true,
+  "sideEffects": false
 }
