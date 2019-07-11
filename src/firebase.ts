@@ -1,19 +1,16 @@
-import * as admin from 'firebase-admin';
+import { database } from 'firebase-admin';
 
 type WithId<TData> = TData & { id: string };
 
 export class FirebaseCollection<TData extends {}, TCreate = TData> {
-  public colRef: admin.database.Reference;
+  public colRef: database.Reference;
 
-  constructor(
-    public db: admin.database.Database,
-    public collectionName: string
-  ) {
+  constructor(public db: database.Database, public collectionName: string) {
     this.colRef = db.ref(collectionName);
   }
 
   public getDataFromSnapshot = (
-    snapshot: admin.database.DataSnapshot | null
+    snapshot: database.DataSnapshot | null
   ): WithId<TData> | null => {
     if (snapshot) {
       if (snapshot.exists()) {
@@ -28,27 +25,27 @@ export class FirebaseCollection<TData extends {}, TCreate = TData> {
   };
 
   public getDataFromSnapshots = (
-    snapshots: Array<admin.database.DataSnapshot | null>
+    snapshots: Array<database.DataSnapshot | null>
   ): Array<WithId<TData> | null> => snapshots.map(this.getDataFromSnapshot);
 
   public getFirstDataFromSnapshot = (
-    snapshot: admin.database.DataSnapshot
+    snapshot: database.DataSnapshot
   ): TData | null => {
     const data = snapshot.val();
     return data.length > 0 ? (data[0] as TData) : null;
   };
 
-  public doc = (id: string): admin.database.Reference => this.colRef.child(id);
+  public doc = (id: string): database.Reference => this.colRef.child(id);
 
-  public newDoc = (): admin.database.Reference => this.colRef.push();
+  public newDoc = (): database.Reference => this.colRef.push();
 
-  public getById = (id: string): Promise<admin.database.DataSnapshot> =>
+  public getById = (id: string): Promise<database.DataSnapshot> =>
     this.colRef.child(id).once('value');
 
   public getDataById = (id: string): Promise<WithId<TData> | null> =>
     this.getById(id).then(this.getDataFromSnapshot);
 
-  public getByIds = (ids: string[]): Promise<admin.database.DataSnapshot[]> =>
+  public getByIds = (ids: string[]): Promise<database.DataSnapshot[]> =>
     Promise.all(ids.map(this.getById));
 
   public getDataByIds = (ids: string[]): Promise<Array<WithId<TData> | null>> =>
@@ -72,7 +69,7 @@ export class FirebaseCollection<TData extends {}, TCreate = TData> {
   public queryByUniqueField = <Key extends keyof TData & string>(
     field: Key,
     value: TData[Key]
-  ): admin.database.Query =>
+  ): database.Query =>
     this.colRef
       .orderByChild(field)
       .equalTo(value as any)
