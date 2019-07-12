@@ -4,7 +4,6 @@ export {
   FirestoreCollection,
   IFirestoreWhereConditions,
   batchFirestoreOps,
-  firestoreServerNow,
   getAllByIdsTransaction,
   getDataFromSnapshot,
 } from './firestore';

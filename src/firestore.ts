@@ -1,15 +1,8 @@
-import {
-  FieldValue,
-  Transaction,
-  WhereFilterOp,
-} from '@google-cloud/firestore';
+import { Transaction, WhereFilterOp } from '@google-cloud/firestore';
 import { MaybePromise } from 'tsdef';
 import { getKeys } from './util';
 
 export type BatchOp = (x: FirebaseFirestore.WriteBatch) => void;
-
-export const firestoreServerNow = (): FieldValue =>
-  FieldValue.serverTimestamp();
 
 export const batchFirestoreOps = async (
   fs: FirebaseFirestore.Firestore,
