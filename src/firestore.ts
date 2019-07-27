@@ -1,55 +1,16 @@
-import { Transaction, WhereFilterOp } from '@google-cloud/firestore';
+import { Transaction } from '@google-cloud/firestore';
 import { MaybePromise } from 'tsdef';
-import { getKeys } from './util';
-
-export type BatchOp = (x: FirebaseFirestore.WriteBatch) => void;
-
-export const batchFirestoreOps = async (
-  fs: FirebaseFirestore.Firestore,
-  fns: BatchOp[]
-): Promise<void> => {
-  let i = 0;
-  while (i < fns.length) {
-    const batch = fs.batch();
-    let j = 0;
-    for (; j < 500 && i < fns.length; j += 1) {
-      fns[i](batch);
-      i += 1;
-    }
-    await batch.commit();
-  }
-};
-
-const getFirstQueryDocumentSnapshot = (
-  snapshot: FirebaseFirestore.QuerySnapshot
-): FirebaseFirestore.QueryDocumentSnapshot | null =>
-  snapshot.empty ? null : snapshot.docs[0];
+import {
+  batchFirestoreOps,
+  BatchOp,
+  firestoreWhere,
+  getFirstQueryDocumentSnapshot,
+  getSnapshotData,
+  IFirestoreWhereConditions,
+  isQuerySnapshotNotEmpty,
+} from './firestoreCommon';
 
 type WithId<TData> = TData & { id: string };
-
-export const getDataFromSnapshot = <TData>(
-  snapshot: FirebaseFirestore.DocumentSnapshot
-): WithId<TData> | null => {
-  if (snapshot.exists) {
-    const data = snapshot.data() as WithId<TData>;
-    if (typeof data.id === 'undefined') {
-      data.id = snapshot.id;
-    }
-    return data;
-  }
-  return null;
-};
-
-type ItemType<T> = T extends Array<infer I> ? I : never;
-
-export type IFirestoreWhereConditions<TData> = Partial<
-  {
-    [key in keyof TData & string]: Partial<
-      { [op in Exclude<WhereFilterOp, 'array-contains'> & string]: TData[key] }
-    > &
-      Partial<{ ['array-contains']: ItemType<TData[key]> }>;
-  }
->;
 
 export const getAllByIdsTransaction = async <
   Map extends { [key: string]: [FirestoreCollection<any>, string | null] }
@@ -116,18 +77,11 @@ export class FirestoreCollection<
   }
 
   public getDataFromSnapshot = (
-    snapshot:
-      | FirebaseFirestore.DocumentSnapshot
-      | FirebaseFirestore.QueryDocumentSnapshot
-      | null
-  ): WithId<TRead> | null => snapshot && getDataFromSnapshot(snapshot);
+    snapshot: FirebaseFirestore.DocumentSnapshot | null
+  ): WithId<TRead> | null => snapshot && getSnapshotData(snapshot);
 
   public getDataFromSnapshots = (
-    snapshots: Array<
-      | FirebaseFirestore.DocumentSnapshot
-      | FirebaseFirestore.QueryDocumentSnapshot
-      | null
-    >
+    snapshots: Array<FirebaseFirestore.DocumentSnapshot | null>
   ): Array<WithId<TRead> | null> => snapshots.map(this.getDataFromSnapshot);
 
   public doc = (id: string): FirebaseFirestore.DocumentReference =>
@@ -401,25 +355,7 @@ export class FirestoreCollection<
   public where = (
     conditions: IFirestoreWhereConditions<TRead>
   ): FirebaseFirestore.Query => {
-    let query: FirebaseFirestore.Query = this.colRef;
-    const fields = getKeys(conditions);
-    const flen = fields.length;
-    for (let i = 0; i < flen; i += 1) {
-      const field = fields[i];
-      const opToValue = conditions[field];
-      if (opToValue != null) {
-        const ops = getKeys(opToValue) as WhereFilterOp[];
-        const olen = ops.length;
-        for (let j = 0; j < olen; j += 1) {
-          const op = ops[j];
-          const value = opToValue[op];
-          if (value !== undefined) {
-            query = query.where(field, op, value);
-          }
-        }
-      }
-    }
-    return query;
+    return firestoreWhere<TRead>(this.colRef, conditions);
   };
 
   public findOne = (
@@ -428,7 +364,31 @@ export class FirestoreCollection<
     return this.where(conditions)
       .limit(1)
       .get()
-      .then((s) => s.docs[0] || null);
+      .then(getFirstQueryDocumentSnapshot);
+  };
+
+  public findOneData = (
+    conditions: IFirestoreWhereConditions<TRead>
+  ): Promise<WithId<TRead> | null> => {
+    return this.findOne(conditions).then(this.getDataFromSnapshot);
+  };
+
+  public findOneTransaction = (
+    transaction: Transaction,
+    conditions: IFirestoreWhereConditions<TRead>
+  ): Promise<FirebaseFirestore.QueryDocumentSnapshot | null> => {
+    return transaction
+      .get(this.where(conditions).limit(1))
+      .then(getFirstQueryDocumentSnapshot);
+  };
+
+  public findOneDataTransaction = (
+    transaction: Transaction,
+    conditions: IFirestoreWhereConditions<TRead>
+  ): Promise<WithId<TRead> | null> => {
+    return this.findOneTransaction(transaction, conditions).then(
+      this.getDataFromSnapshot
+    );
   };
 
   public exists = (
@@ -437,7 +397,7 @@ export class FirestoreCollection<
     return this.where(conditions)
       .limit(1)
       .get()
-      .then((s) => s.size > 0);
+      .then(isQuerySnapshotNotEmpty);
   };
 
   public getByUniqueField = <Key extends keyof TRead & string>(
