@@ -3,6 +3,8 @@ import {
   firestoreWhere,
   getFirstQueryDocumentSnapshot,
   getQueryDocumentSnapshots,
+  getQueryIsNotEmpty,
+  getQuerySize,
   getQuerySnapshotDataGetter,
   getSnapshotData,
   IFirestoreWhereConditions,
@@ -44,10 +46,22 @@ export class FirestoreQueryBuilder<T, IDKey extends string = 'id'> {
   }
 
   public getQuerySnapshot(): Promise<FirebaseFirestore.QuerySnapshot> {
-    if (this.tx) {
-      return this.tx.get(this.query);
+    const { tx } = this;
+    return tx ? tx.get(this.query) : this.query.get();
+  }
+
+  public exists(): Promise<boolean> {
+    if (this._limit !== 1) {
+      this.limit(1);
     }
-    return this.query.get();
+    return this.getQuerySnapshot().then(getQueryIsNotEmpty);
+  }
+
+  public count(limit?: number): Promise<number> {
+    if (limit) {
+      this.limit(limit);
+    }
+    return this.getQuerySnapshot().then(getQuerySize);
   }
 
   public getDocumentSnapshots(): Promise<

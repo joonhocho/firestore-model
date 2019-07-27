@@ -77,6 +77,18 @@ export const getQueryResult = (
   return query.get();
 };
 
+export const getQueryIsEmpty = (
+  snapshot: FirebaseFirestore.QuerySnapshot
+): boolean => snapshot.size === 0;
+
+export const getQueryIsNotEmpty = (
+  snapshot: FirebaseFirestore.QuerySnapshot
+): boolean => snapshot.size > 0;
+
+export const getQuerySize = (
+  snapshot: FirebaseFirestore.QuerySnapshot
+): number => snapshot.size;
+
 export const getQuerySnapshotData = <TData, IDKey extends string = 'id'>(
   snapshot: FirebaseFirestore.QueryDocumentSnapshot,
   idKey: IDKey = 'id' as any
