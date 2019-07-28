@@ -1,4 +1,4 @@
-import { Transaction } from '@google-cloud/firestore';
+import { Transaction } from '_deps/@google-cloud/firestore';
 import { MaybePromise } from 'tsdef';
 import {
   batchFirestoreOps,

@@ -8,7 +8,10 @@ export {
   getFirstQueryDocumentSnapshot,
   getQueryDocumentSnapshots,
   getQueryDocumentSnapshotsMapper,
+  getQueryIsEmpty,
+  getQueryIsNotEmpty,
   getQueryResult,
+  getQuerySize,
   getQuerySnapshotData,
   getQuerySnapshotDataGetter,
   getSnapshotData,
@@ -21,5 +24,12 @@ export {
   FirestoreQueryBuilder,
   IFirestoreQueryBuilderOptions,
 } from './FirestoreQueryBuilder';
+export {
+  FirestoreTransaction,
+  FirestoreTransactionRead,
+  FirestoreTransactionWrite,
+  composeFirestoreTransactions,
+} from './FirestoreTransaction';
 export { ItemType } from './ts';
 export { getKeys } from './util';
+export { Transaction, WhereFilterOp } from './deps/@google-cloud/firestore';

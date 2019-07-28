@@ -6,6 +6,7 @@ module.exports = {
   },
   moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json'],
   moduleNameMapper: {
+    '^_deps/(.*)': '<rootDir>/src/deps/$1',
     '^_src/(.*)': '<rootDir>/src/$1',
   },
   testEnvironment: 'node',

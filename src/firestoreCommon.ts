@@ -1,4 +1,4 @@
-import { Transaction, WhereFilterOp } from '@google-cloud/firestore';
+import { Transaction, WhereFilterOp } from '_deps/@google-cloud/firestore';
 import { ItemType } from './ts';
 import { getKeys } from './util';
 
