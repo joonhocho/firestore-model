@@ -9,7 +9,7 @@ export type FirestoreTransactionWrite<Input, ReadData, Output> = (
   tx: Transaction,
   input: Input,
   data: ReadData
-) => Output;
+) => Output | Promise<Output>;
 
 export class FirestoreTransaction<Input, Output, ReadData> {
   public _input!: Input;
