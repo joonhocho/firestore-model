@@ -1,6 +1,6 @@
 {
   "name": "firestore-model",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "description": "Firestore / Firebase object model schema wrapper",
   "keywords": [
     "Firestore",
@@ -35,7 +35,7 @@
     "lint": "tslint -c ./tslint.json \"src/**/*.ts\"",
     "lint:fix": "tslint --fix -c ./tslint.json \"src/**/*.ts\"",
     "precommit": "npm run all",
-    "prepublish": "npm run all",
+    "prepublishOnly": "npm run all",
     "reinstall": "rm -rf ./node_modules ./package-lock.json ./yarn.lock && yarn",
     "start": "npm run test",
     "test": "jest",
@@ -48,17 +48,17 @@
     "tslib": "^1.10.0"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.15",
-    "@types/node": "^12.6.8",
-    "coveralls": "^3.0.5",
-    "firebase-admin": "8.3.0",
-    "jest": "^24.8.0",
+    "@types/jest": "^24.0.18",
+    "@types/node": "^12.7.2",
+    "coveralls": "^3.0.6",
+    "firebase-admin": "8.4.0",
+    "jest": "^24.9.0",
     "pre-commit": "^1.2.2",
     "prettier": "^1.18.2",
     "ts-jest": "^24.0.2",
     "tscpaths": "^0.0.9",
     "tsdef": "0.0.13",
-    "tslint": "^5.18.0",
+    "tslint": "^5.19.0",
     "tslint-config-airbnb": "^5.11.1",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.5.2"
