@@ -5,9 +5,15 @@ import { getKeys } from './util';
 export type IFirestoreWhereConditions<TData> = Partial<
   {
     [key in keyof TData & string]: Partial<
-      { [op in Exclude<WhereFilterOp, 'array-contains'> & string]: TData[key] }
+      {
+        [op in Exclude<WhereFilterOp, 'array-contains' | 'in'> &
+          string]: TData[key];
+      }
     > &
-      Partial<{ ['array-contains']: ItemType<TData[key]> }>;
+      Partial<{
+        ['in']: Array<TData[key]>;
+        ['array-contains']: ItemType<TData[key]>;
+      }>;
   }
 >;
 

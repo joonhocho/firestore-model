@@ -21,9 +21,9 @@ export const getAllByIdsTransaction = async <
   {
     [key in keyof Map]: Map[key][1] extends null
       ? null
-      : (Map[key][0] extends FirestoreCollection<any, infer R>
-          ? WithId<R> | null
-          : never);
+      : Map[key][0] extends FirestoreCollection<any, infer R>
+      ? WithId<R> | null
+      : never;
   }
 > => {
   const keys = Object.keys(map);
