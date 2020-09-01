@@ -39,6 +39,7 @@ export const composeFirestoreTransactions = <
   const keys = Object.keys(transactions) as Array<keyof T & string>;
   return new FirestoreTransaction(
     (tx, input): Promise<Array<T[keyof T & string]['_readData']>> =>
+      // tslint:disable-next-line: typedef
       Promise.all(keys.map((key) => transactions[key].read(tx, input[key]))),
 
     (tx, input, data): { [K in keyof T & string]: T[K]['_output'] } => {

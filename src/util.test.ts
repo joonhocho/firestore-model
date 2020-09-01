@@ -1,3 +1,4 @@
+// tslint:disable: typedef
 import { getKeys } from './util';
 
 test('getKeys', () => {

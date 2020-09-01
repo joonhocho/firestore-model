@@ -53,9 +53,7 @@ export class FirestoreQueryBuilder<T, IDKey extends string = 'id'> {
   }
 
   public exists(): Promise<boolean> {
-    return this.limit(1)
-      .getQuerySnapshot()
-      .then(getQueryIsNotEmpty);
+    return this.limit(1).getQuerySnapshot().then(getQueryIsNotEmpty);
   }
 
   public count(limit?: number): Promise<number> {
@@ -72,18 +70,18 @@ export class FirestoreQueryBuilder<T, IDKey extends string = 'id'> {
   }
 
   public getOneDocumentSnapshot(): Promise<FirebaseFirestore.QueryDocumentSnapshot | null> {
-    return this.limit(1)
-      .getQuerySnapshot()
-      .then(getFirstQueryDocumentSnapshot);
+    return this.limit(1).getQuerySnapshot().then(getFirstQueryDocumentSnapshot);
   }
 
   public getDataList(): Promise<Array<T & { [K in IDKey]: string }>> {
+    // tslint:disable-next-line: typedef
     return this.getQuerySnapshot().then((s) =>
       s.docs.map(this.getQuerySnapshotData)
     );
   }
 
   public getOneData(): Promise<(T & { [K in IDKey]: string }) | null> {
+    // tslint:disable-next-line: typedef
     return this.getOneDocumentSnapshot().then((s) =>
       getSnapshotData(s, this.idKey)
     );

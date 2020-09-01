@@ -1,3 +1,4 @@
+// tslint:disable: typedef
 import { Transaction } from '_deps/@google-cloud/firestore';
 import { MaybePromise } from 'tsdef';
 import {
@@ -396,6 +397,7 @@ export class FirestoreCollection<
   ): Promise<boolean> => {
     return this.where(conditions)
       .limit(1)
+      .select() // empty fields
       .get()
       .then(isQuerySnapshotNotEmpty);
   };

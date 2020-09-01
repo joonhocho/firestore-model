@@ -61,7 +61,7 @@ export class FirebaseCollection<TData extends {}, TCreate = TData> {
     this.colRef.child(id).set(data);
 
   public upsertById = (id: string, data: TCreate): Promise<void> =>
-    this.colRef.child(id).update(data);
+    this.colRef.child(id).update(data as any);
 
   public deleteById = (id: string): Promise<void> =>
     this.colRef.child(id).remove();
